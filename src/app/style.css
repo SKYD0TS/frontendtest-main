@@ -1,0 +1,9 @@
+*{
+    box-sizing: border-box;
+}
+
+main{
+    & div{
+        border: 1px solid red;
+    }
+}

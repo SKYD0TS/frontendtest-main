@@ -1,0 +1,10 @@
+.input{
+    padding:.3rem;
+    height: 1.6rem;
+    border:none;
+    width: 50%;
+}
+.text{
+    display: flex;
+    flex-direction: column;
+}
