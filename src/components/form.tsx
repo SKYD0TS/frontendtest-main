@@ -1,7 +1,7 @@
 'use client'
 
 import Input from "@/components/input"
-import styles from "@/components/css/form.module.css"
+import styles from "./form.module.css"
 import { FormEvent } from "react"
 
 type FormColumns = {
@@ -26,14 +26,13 @@ async function HandleFormSubmit(e: FormEvent) {
 }
 
 export default function Form(props: { columns: FormColumns[] }) {
-    
-    // console.log(props.columns.map(function (c) { return c }))
+
     return (<>
-    <form className={styles.form} style={{display:'flex'}} onSubmit={HandleFormSubmit}>
-        {props.columns.map((c, v) => {
-            return <Input key={c.name} inputType={c} />
-        })}
-        <button type="submit">subm</button>
-    </form>
+        <form className={styles.form} style={{ display: 'flex' }} onSubmit={HandleFormSubmit}>
+            {props.columns.map((c, v) => {
+                return <Input key={c.name} inputType={c} />
+            })}
+            <button type="submit">subm</button>
+        </form>
     </>)
 }

@@ -1,5 +1,5 @@
 'use client'
-import style from './css/input.module.css'
+import style from './input.module.css'
 
 type InputType = {
     type: string,
@@ -10,7 +10,7 @@ type InputType = {
 type InputModel = {
     [key: string]: JSX.Element
 }
-export default function Input(param: {inputType: InputType }) {
+export default function Input(param: { inputType: InputType }) {
     const inputModel: InputModel = {
         text: <input className={`${style.input} ${style.text}`} name={param.inputType.name} />,
         number: <input className={`${style.input} ${style.number}`} name={param.inputType.name} />

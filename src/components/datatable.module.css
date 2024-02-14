@@ -1,0 +1,31 @@
+.datatable {
+    border-collapse: collapse;
+    cursor: default;
+}
+
+/* TABLE HEADER */
+.datatable thead tr th {
+    padding: 0.13rem 0.87rem 0.13rem 0.34rem;
+    cursor: pointer;
+}
+
+/* TABLE BODY */
+.datatable tbody tr:nth-child(odd) {
+    background-color: rgba(225, 255, 255, 0.16);
+}
+
+.datatable tbody tr:hover {
+    background-color: rgba(225, 255, 255, 0.2);
+}
+
+/* TABLE borders */
+.datatable tbody tr td {
+    padding: 0.23rem;
+    padding-right: .5rem;
+    border-left: 1px solid blue;
+    border-bottom: 1px solid red;
+}
+
+.text-center {
+    text-align: center;
+}
