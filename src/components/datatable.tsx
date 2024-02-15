@@ -9,7 +9,9 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     isFunction,
-    HeaderContext
+    HeaderContext,
+    getFilteredRowModel,
+    ColumnFiltersState
 } from "@tanstack/react-table";
 import { ReactNode, useEffect, useState } from "react";
 import style from './datatable.module.css'
@@ -22,6 +24,7 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
     const [pageIndex, setPageIndex] = useState(0)
     const [pageSize, setPageSize] = useState(10)
     const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
     const table = useReactTable({
         columns: props.columns,
@@ -31,35 +34,42 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
             pagination: { pageIndex, pageSize },
         },
         onSortingChange: setSorting,
-        getSortedRowModel: getSortedRowModel(),
+        onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel()
+        getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+
     })
     // const table = useReactTable({columns, data})
     // table.getState().rowSelection //read the row selection state
     return (<>
+        <div>
+            <label htmlFor="search">Search:</label>
+            <input
+                onChange={(e) => { table.setGlobalFilter(e.target.value) }}
+                id="search"
+                type="text" />
+        </div>
         <table className={style.datatable}>
             <thead>
-                {table.getHeaderGroups().map((hg) => {
-                    return <tr key={hg.id}>
+                {table.getHeaderGroups().map((hg) =>
+                    <tr key={hg.id}>
                         {hg.headers.map((h) => {
-                            // return <th key={h.id}>{h.isPlaceholder ? null
-                            //     : flexRender(
-                            //         h.column.columnDef.header,
-                            //         h.getContext()
-                            //     )}</th>
-                            // return <button key={h.id}>{h.column.columnDef.header}</button> 
-                            console.log(h.column.columnDef.header, h.getContext())
-                            return <th key={h.id}>{isFunction(h.column.columnDef.header) ?
-                                flexRender(
-                                    h.column.columnDef.header,
-                                    h.getContext()
-                                ) :
-                                <button key={h.id}>{h.column.columnDef.header}</button>
+                            return <th key={h.id}>{
+                                h.column.getCanSort() ?
+                                    <button
+                                        onClick={(e) => { h.column.toggleSorting(h.column.getIsSorted() === "asc") }}
+                                        className={style.ghostButton} key={h.id}>{(h.column.columnDef.header ?? "-") as string}</button>
+                                    :
+                                    flexRender(
+                                        h.column.columnDef.header,
+                                        h.getContext()
+                                    )
                             }</th>
                         })}
                     </tr>
-                })}
+                )}
             </thead>
             <tbody>
                 {table.getRowModel().rows.map(data => {

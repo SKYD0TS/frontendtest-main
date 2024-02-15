@@ -18,14 +18,14 @@ export default function Home() {
 
 
   const columns = [
-    {
-      accessorKey: "#",
-      header: SortableHeader,
-      className: 'AWHF',
-      meta: { sortable: false },
-      cell: (rows: any) => <>{(rows.row.index + 1)}</>,
-
-    },
+    // {
+    //   accessorKey: "#",
+    //   header: "#",
+    //   className: 'AWHF',
+    //   enableSorting: false,
+    //   meta: { sortable: false },
+    //   cell: (rows: any) => <>{(rows.row.index + 1)}</>,
+    // },
     {
       accessorKey: "username",
       header: "Username",
@@ -33,12 +33,18 @@ export default function Home() {
     },
     {
       accessorKey: "password",
-      header: "Password"
+      header: "Password",
+      enableSorting: false,
     },
     {
       accessorKey: "action",
       header: "Action",
-      cell: (rows: any) => <><button onClick={(e) => console.log(rows.row.original)}>Edit</button><button onClick={() => alert(rows.row.original.id + rows.row.original.username)}>Delete</button></>
+      enableSorting: false,
+      cell: (rows: any) => (
+        <div>
+          <button onClick={(e) => console.log(rows.row.original)}>Edit</button>
+          <button onClick={() => alert(rows.row.original.id + rows.row.original.username)}>Delete</button>
+        </div>)
     },
   ];
 

@@ -5,11 +5,25 @@
 
 /* TABLE HEADER */
 .datatable thead tr th {
-    padding: 0.13rem 0.87rem 0.13rem 0.34rem;
-    cursor: pointer;
+    padding: 0.4rem 1rem 0.4rem 0.34rem;
+    text-align: start;
+}
+
+.datatable thead tr th:has(button) {
+    padding: 0;
+}
+
+.datatable thead tr th button {
+    text-align: start;
+    padding: 0.4rem 1rem 0.4rem 0.34rem;
 }
 
 /* TABLE BODY */
+
+.datatable tbody tr td {
+    padding: 0.39rem 0.37rem;
+}
+
 .datatable tbody tr:nth-child(odd) {
     background-color: rgba(225, 255, 255, 0.16);
 }
@@ -18,14 +32,28 @@
     background-color: rgba(225, 255, 255, 0.2);
 }
 
+
+/*  */
+.datatable tbody tr td div:has(button) {
+    display: flex;
+    gap: 0.37rem;
+}
+
 /* TABLE borders */
 .datatable tbody tr td {
-    padding: 0.23rem;
-    padding-right: .5rem;
+
     border-left: 1px solid blue;
     border-bottom: 1px solid red;
 }
 
 .text-center {
     text-align: center;
+}
+
+.ghostButton {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    height: 100%;
+    width: 100%;
 }
