@@ -6,6 +6,7 @@
 /* TABLE HEADER */
 .datatable thead tr th {
     padding: 0.4rem 1rem 0.4rem 0.34rem;
+    font-weight: normal;
     text-align: start;
 }
 
@@ -51,6 +52,8 @@
 }
 
 .ghostButton {
+    font-family: inherit;
+    font-size: inherit;
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0);
     border: none;

@@ -8,12 +8,10 @@ import {
     flexRender,
     getPaginationRowModel,
     getSortedRowModel,
-    isFunction,
-    HeaderContext,
     getFilteredRowModel,
     ColumnFiltersState
-} from "@tanstack/react-table";
-import { ReactNode, useEffect, useState } from "react";
+} from "@tanstack/react-table"
+import { ReactNode, useEffect, useState } from "react"
 import style from './datatable.module.css'
 
 // export function SortableHeader(props: { column: any }) {
@@ -21,14 +19,17 @@ import style from './datatable.module.css'
 // }
 
 export default function Datatable(props: { data: any[], columns: ColumnDef<any>[] }) {
+    const [columns, setColumns] = useState<any>(props.columns)
+    const [data, setData] = useState<any>(props.data)
+
     const [pageIndex, setPageIndex] = useState(0)
     const [pageSize, setPageSize] = useState(10)
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
     const table = useReactTable({
-        columns: props.columns,
-        data: props.data,
+        columns: columns,
+        data: data,
         state: {
             sorting,
             pagination: { pageIndex, pageSize },
@@ -41,8 +42,8 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
         getFilteredRowModel: getFilteredRowModel(),
 
     })
-    // const table = useReactTable({columns, data})
-    // table.getState().rowSelection //read the row selection state
+    useEffect(() => setPageIndex(0), [sorting])
+    // useEffect(() => console.log(columns), [columns])
     return (<>
         <div>
             <label htmlFor="search">Search:</label>
@@ -54,6 +55,7 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
         <table className={style.datatable}>
             <thead>
                 {table.getHeaderGroups().map((hg) =>
+
                     <tr key={hg.id}>
                         {hg.headers.map((h) => {
                             return <th key={h.id}>{
@@ -72,14 +74,25 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
                 )}
             </thead>
             <tbody>
-                {table.getRowModel().rows.map(data => {
+                {table.getRowModel().rows.map((data, dn) => {
                     return <tr key={data.id}>{data.getVisibleCells().map((c) => {
-                        return <td key={c.id}>{
-                            flexRender(
-                                c.column.columnDef.cell,
-                                c.getContext()
-                            )
-                        }</td>
+                        const columnDef = c.column.columnDef as any
+                        if (columnDef.columnTemplate?.template == "index") {
+                            return <td key={c.id}>{(dn + 1) + (pageSize * pageIndex)}</td>
+                        } else if (columnDef.columnTemplate?.template == "action") {
+                            return <td key={c.id}>
+                                {columnDef.columnTemplate.templateProps.map((p: any, pn: number) => {
+                                    console.log(p)
+                                })}
+                            </td>
+                        } else {
+                            return <td key={c.id}>{
+                                flexRender(
+                                    c.column.columnDef.cell,
+                                    c.getContext()
+                                )
+                            }</td>
+                        }
                     })}</tr>
                 })}
             </tbody>
