@@ -18,7 +18,18 @@ import style from './datatable.module.css'
 //     <button>{props.column.columnDef.accessorKey}</button>
 // }
 
-export default function Datatable(props: { data: any[], columns: ColumnDef<any>[] }) {
+function handleEdit(id: string) {
+    console.log('handledit ' + id)
+}
+
+function handleDelete(id: string) {
+    console.log('handledele ' + id)
+}
+
+
+
+export default function Datatable(props: { data: any[], columns: ColumnDef<any>[], apiUrl: string }) {
+
     const [columns, setColumns] = useState<any>(props.columns)
     const [data, setData] = useState<any>(props.data)
 
@@ -77,15 +88,23 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
                 {table.getRowModel().rows.map((data, dn) => {
                     return <tr key={data.id}>{data.getVisibleCells().map((c) => {
                         const columnDef = c.column.columnDef as any
+                        const originalData = c.row.original as any
+
                         if (columnDef.columnTemplate?.template == "index") {
                             return <td key={c.id}>{(dn + 1) + (pageSize * pageIndex)}</td>
-                        } else if (columnDef.columnTemplate?.template == "action") {
+                        }
+                        else if (columnDef.columnTemplate?.template == "action") {
                             return <td key={c.id}>
-                                {columnDef.columnTemplate.templateProps.map((p: any, pn: number) => {
-                                    console.log(p)
+                                {columnDef.columnTemplate.templateProps.children.map((p: any, pn: number) => {
+                                    if (p.type == 'button') {
+                                        return <button key={pn}
+                                            onClick={() => { eval(`${p.onClick}(${originalData.id})`) }}
+                                        >{p.text}</button>
+                                    }
                                 })}
                             </td>
-                        } else {
+                        }
+                        else {
                             return <td key={c.id}>{
                                 flexRender(
                                     c.column.columnDef.cell,
