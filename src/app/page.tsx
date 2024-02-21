@@ -9,6 +9,13 @@ import { table } from "console"
 const API_URL = "http://127.0.0.1:8000"
 // import { columns } from "@/components/column"
 
+export function handleEdit({ id, item }: { id: string, item: any }) {
+  console.log('handledit ' + id)
+}
+
+export function handleDelete(id: string) {
+  console.log('handledele ' + id)
+}
 
 export default function Home() {
   const [loading, setLoading] = useState(true)
@@ -79,23 +86,23 @@ export default function Home() {
     { id: 17, username: "aaxfn", password: "password" },
   ])
 
-  useEffect(() => {
-    async function fetchData() {
-      const url = API_URL + '/api/col'
-      console.log(url)
-      setApiUrl(url)
-      await fetch("http://localhost:8000/api/col")
-        .then(d => { console.log(d); return d })
-        .then(r => r.ok ? r.json() : Promise.reject)
-        .then(d => {
-          console.log(d.columns, d.data)
-          setColumns(d.columns)
-          setData(d.data)
-          setLoading(false)
-        }).catch(err => Promise.reject<any>(new Error(err)))
-    }
-    fetchData()
-  }, [])
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     const url = API_URL + '/api/col'
+  //     console.log(url)
+  //     setApiUrl(url)
+  //     await fetch("http://localhost:8000/api/col")
+  //       .then(d => { console.log(d); return d })
+  //       .then(r => r.ok ? r.json() : Promise.reject)
+  //       .then(d => {
+  //         console.log(d.columns, d.data)
+  //         setColumns(d.columns)
+  //         setData(d.data)
+  //         setLoading(false)
+  //       }).catch(err => Promise.reject<any>(new Error(err)))
+  //   }
+  //   fetchData()
+  // }, [])
 
   // if (loading) { return <>..</> }
 

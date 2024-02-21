@@ -11,24 +11,25 @@ import {
     getFilteredRowModel,
     ColumnFiltersState
 } from "@tanstack/react-table"
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, createElement, useEffect, useState } from "react"
 import style from './datatable.module.css'
 
 // export function SortableHeader(props: { column: any }) {
 //     <button>{props.column.columnDef.accessorKey}</button>
 // }
 
-function handleEdit(id: string) {
-    console.log('handledit ' + id)
+
+// !!NO TYPE
+function createReactElement({ type, props, children }: any) {
+    const childElements: Array<any> = Array.isArray(children)
+        ? children.map(child =>
+            typeof child === 'object' ? createReactElement(child) : child
+        )
+        : [children];
+    return createElement(type, { ...props, className: style[props?.className ?? type] }, ...childElements);
 }
 
-function handleDelete(id: string) {
-    console.log('handledele ' + id)
-}
-
-
-
-export default function Datatable(props: { data: any[], columns: ColumnDef<any>[], apiUrl: string }) {
+export default function Datatable(props: { data: any[], columns: ColumnDef<any>[], apiUrl: string, handlers?: any }) {
 
     const [columns, setColumns] = useState<any>(props.columns)
     const [data, setData] = useState<any>(props.data)
@@ -55,6 +56,27 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
     })
     useEffect(() => setPageIndex(0), [sorting])
     // useEffect(() => console.log(columns), [columns])
+    return createReactElement({
+        type: 'div',
+        props: { className: 'container' },
+        children: [
+            { type: "button", props: { onClick: 'handleEdit' }, children: "edit" },
+            { type: 'i', props: { className: 'icon-1' }, children: null },
+            'this is a string',
+            {
+                type: 'div',
+                props: { className: 'nested-container' },
+                children: [
+                    'Nested content',
+                    {
+                        type: 'p',
+                        props: null,
+                        children: ['More nested content']
+                    }
+                ]
+            }
+        ]
+    })
     return (<>
         <div>
             <label htmlFor="search">Search:</label>
@@ -66,7 +88,6 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
         <table className={style.datatable}>
             <thead>
                 {table.getHeaderGroups().map((hg) =>
-
                     <tr key={hg.id}>
                         {hg.headers.map((h) => {
                             return <th key={h.id}>{
@@ -97,6 +118,8 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
                             return <td key={c.id}>
                                 {columnDef.columnTemplate.templateProps.children.map((p: any, pn: number) => {
                                     if (p.type == 'button') {
+                                        // return createElement(p.type, { p.props })
+
                                         return <button key={pn}
                                             onClick={() => { eval(`${p.onClick}(${originalData.id})`) }}
                                         >{p.text}</button>
