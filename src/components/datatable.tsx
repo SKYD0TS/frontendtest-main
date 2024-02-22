@@ -19,6 +19,28 @@ import style from './datatable.module.css'
 // }
 
 
+// createReactElement({
+//     type: 'div',
+//     props: { className: 'container' },
+//     children: [
+//         { type: "button", props: { onClick: 'handleEdit' }, children: "edit" },
+//         { type: 'i', props: { className: 'icon-1' }, children: null },
+//         'this is a string',
+//         {
+//             type: 'div',
+//             props: { className: 'nested-container' },
+//             children: [
+//                 'Nested content',
+//                 {
+//                     type: 'p',
+//                     props: null,
+//                     children: ['More nested content']
+//                 }
+//             ]
+//         }
+//     ]
+// })
+
 // !!NO TYPE
 function createReactElement({ type, props, children }: any) {
     const childElements: Array<any> = Array.isArray(children)
@@ -29,7 +51,12 @@ function createReactElement({ type, props, children }: any) {
     return createElement(type, { ...props, className: style[props?.className ?? type] }, ...childElements);
 }
 
-export default function Datatable(props: { data: any[], columns: ColumnDef<any>[], apiUrl: string, handlers?: any }) {
+type ERUDHandlers = {
+    updateItemHandler?: (id: string, item: any) => void
+    deleteItemHandler?: (id: string) => void
+}
+
+export default function Datatable(props: { data: any[], columns: ColumnDef<any>[], apiUrl: string, handlers?: ERUDHandlers }) {
 
     const [columns, setColumns] = useState<any>(props.columns)
     const [data, setData] = useState<any>(props.data)
@@ -38,6 +65,12 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
     const [pageSize, setPageSize] = useState(10)
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+    const ERUD = props.handlers
+
+    // if (ERUD?.deleteItemHandler) {
+    //     ERUD.deleteItemHandler('4')
+    // }
 
     const table = useReactTable({
         columns: columns,
@@ -56,27 +89,7 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
     })
     useEffect(() => setPageIndex(0), [sorting])
     // useEffect(() => console.log(columns), [columns])
-    return createReactElement({
-        type: 'div',
-        props: { className: 'container' },
-        children: [
-            { type: "button", props: { onClick: 'handleEdit' }, children: "edit" },
-            { type: 'i', props: { className: 'icon-1' }, children: null },
-            'this is a string',
-            {
-                type: 'div',
-                props: { className: 'nested-container' },
-                children: [
-                    'Nested content',
-                    {
-                        type: 'p',
-                        props: null,
-                        children: ['More nested content']
-                    }
-                ]
-            }
-        ]
-    })
+
     return (<>
         <div>
             <label htmlFor="search">Search:</label>
@@ -111,34 +124,37 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
                         const columnDef = c.column.columnDef as any
                         const originalData = c.row.original as any
 
-                        if (columnDef.columnTemplate?.template == "index") {
-                            return <td key={c.id}>{(dn + 1) + (pageSize * pageIndex)}</td>
-                        }
-                        else if (columnDef.columnTemplate?.template == "action") {
-                            return <td key={c.id}>
-                                {columnDef.columnTemplate.templateProps.children.map((p: any, pn: number) => {
-                                    if (p.type == 'button') {
-                                        // return createElement(p.type, { p.props })
-
-                                        return <button key={pn}
-                                            onClick={() => { eval(`${p.onClick}(${originalData.id})`) }}
-                                        >{p.text}</button>
-                                    }
-                                })}
-                            </td>
-                        }
-                        else {
-                            return <td key={c.id}>{
-                                flexRender(
-                                    c.column.columnDef.cell,
-                                    c.getContext()
-                                )
-                            }</td>
+                        switch (columnDef.columnTemplate?.template) {
+                            case "index":
+                                return <td key={c.id}>{(dn + 1) + (pageSize * pageIndex)}</td>
+                            case "action":
+                                return <td key={c.id}>
+                                    {columnDef.columnTemplate.templateProps.children.map((p: any, pn: number) => {
+                                        if (p.type == 'button') {
+                                            return <button key={pn}
+                                                onClick={() => {
+                                                    p.action === 'update'
+                                                        ? props.handlers?.updateItemHandler?.(originalData.id, originalData)
+                                                        : p.action === 'delete'
+                                                            ? props.handlers?.deleteItemHandler?.(originalData.id)
+                                                            : null
+                                                }}
+                                            >{p.text}</button>
+                                        }
+                                    })}
+                                </td>
+                            default:
+                                return <td key={c.id}>{
+                                    flexRender(
+                                        c.column.columnDef.cell,
+                                        c.getContext()
+                                    )
+                                }</td>
                         }
                     })}</tr>
                 })}
             </tbody>
-        </table>
+        </table >
         <div>
             <p>Pagination:</p>
             <button

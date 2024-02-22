@@ -1,3 +1,17 @@
 * {
     box-sizing: border-box;
 }
+
+dialog {
+    width: 75%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 20rem;
+    margin: auto;
+    position: absolute;
+
+    &::backdrop {
+        background-color: rgb(0 0 0 / 35%);
+    }
+}

@@ -4,27 +4,35 @@ import "./style.css"
 import Form from "@/components/form"
 import Datatable from "@/components/datatable"
 import { Header } from "@tanstack/react-table"
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, useEffect, useRef, useState } from "react"
 import { table } from "console"
 const API_URL = "http://127.0.0.1:8000"
 // import { columns } from "@/components/column"
 
-export function handleEdit({ id, item }: { id: string, item: any }) {
-  console.log('handledit ' + id)
+export function handleUpdate(id: string, item: any) {
+  console.log('handledit ' + id, item)
 }
 
 export function handleDelete(id: string) {
   console.log('handledele ' + id)
 }
 
+
+
 export default function Home() {
   const [loading, setLoading] = useState(true)
   const [apiUrl, setApiUrl] = useState('')
-  const formcols = [
-    { name: "username", type: "text", model: "text" },
-    { name: "password", type: "text", model: "number" },
-  ]
+  const formModal = useRef(null);
+  const [formModalState, setFormModalState] = useState(false)
 
+  function closeModal() {
+    setFormModalState(false)
+  }
+
+  const formcols = [
+    { name: "password", type: "text", model: "number" },
+    { name: "username", type: "text", model: "text" },
+  ]
 
   // const [columns, setColumns] = useState<any>([])
   const [columns, setColumns] = useState([
@@ -52,8 +60,8 @@ export default function Home() {
         template: "action",
         templateProps: {
           children: [
-            { type: "button", onClick: 'handleEdit', text: "edit" },
-            { type: "button", onClick: 'handleDelete', text: "delete" },
+            { type: "button", action: 'update', text: "edit" },
+            { type: "button", action: 'delete', text: "delete" },
           ]
         }
       }
@@ -86,6 +94,19 @@ export default function Home() {
     { id: 17, username: "aaxfn", password: "password" },
   ])
 
+  useEffect(() => {
+    return console.log(formModal.current)
+  })
+
+  useEffect(() => {
+    const fm = formModal.current as any
+    if (formModalState) {
+      fm.showModal();
+    } else {
+      fm.close();
+    }
+  }, [formModalState]);
+
   // useEffect(() => {
   //   async function fetchData() {
   //     const url = API_URL + '/api/col'
@@ -109,10 +130,15 @@ export default function Home() {
   return (
     <main>
       <div>
-        <Form columns={formcols} />
+        <button
+          onClick={() => setFormModalState(true)}
+        >OPEN DIALGO</button>
+        <dialog className="dialog" id="form" ref={formModal} onCancel={closeModal}>
+          <Form columns={formcols} />
+        </dialog>
       </div>
       <div>
-        <Datatable columns={columns} data={data} apiUrl={apiUrl} />
+        <Datatable columns={columns} data={data} apiUrl={apiUrl} handlers={{ updateItemHandler: handleUpdate, deleteItemHandler: handleDelete }} />
 
         <button onClick={() => { console.log(columns) }}>log</button>
         {/* <button onClick={() => {
