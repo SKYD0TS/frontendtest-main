@@ -41,6 +41,18 @@ export default function Page() {
     ]
 
     return <F columns={columns} functions={functions} />
+    const functions = {
+        identity: (value: any) => value,
+        toUpperCase: (value: string) => value.toUpperCase(),
+        // concatenate: (str1: string, str2: string) => str1 + str2,
+    }
+    const columns = [
+        { f: 'identity', args: ['just return'] },
+        { f: 'toUpperCase', args: ['thistouppercase'] },
+        { f: 'concatenate', args: ['conc', 'ate'] },
+    ]
+
+    return <F columns={columns} functions={functions} />
 }
 
 
