@@ -1,20 +1,46 @@
-export function F(props: { args: () => void }) {
-    console.log(props)
-    return (
-        <h2>aw</h2>
-    )
+'use client'
+import { FC, ReactNode } from "react";
+
+interface Function {
+    [key: string]: ((...args: any[]) => any);
+}
+
+interface Column {
+    f: string, args: any[];
+}
+
+export function F({ columns, functions }: { columns: Column[], functions: Function }) {
+    console.log(columns)
+    console.log(functions)
+
+    // this works beautifully
+    const the = () => Object.entries(columns).map(([ck, cv]) => {
+        try {
+            if (!functions[cv.f] && !(typeof functions[cv.f] === 'function')) {
+                throw new Error('no function of: ' + cv.f)
+            }
+            return functions[cv.f](...cv.args)
+        } catch (err) {
+            console.log(err)
+        }
+    }).reduce((pv, v) => pv + ' ' + v)
+    return <h2>{the()}</h2>
+    // return M <
 }
 
 export default function Page() {
-    function arg() {
-        console.log('xa')
+    const functions = {
+        identity: (value: any) => value,
+        toUpperCase: (value: string) => value.toUpperCase(),
+        // concatenate: (str1: string, str2: string) => str1 + str2,
     }
+    const columns = [
+        { f: 'identity', args: ['just return'] },
+        { f: 'toUpperCase', args: ['thistouppercase'] },
+        { f: 'concatenate', args: ['conc', 'ate'] },
+    ]
 
-    return (
-        <div>
-            <F args={arg}></F>
-        </div >
-    )
+    return <F columns={columns} functions={functions} />
 }
 
 
