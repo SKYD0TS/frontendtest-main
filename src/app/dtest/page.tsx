@@ -10,68 +10,70 @@ function insertFunction(elementFunctionName: string, elementFunctionArgs: Array<
 }
 
 function createReactElement(elements: { type: string, props: any, children: any }, handlers?: Record<string, Function>, args?: any): any {
-    console.log('elements', elements)
+    console.log('===============')
+    console.log('base elements', elements)
 
+    //?? ITERATE THROUGH ELEMENTS
     if (Array.isArray(elements)) {
         console.log('elements is ARRAY', elements)
         return elements.map((element, elementN) => {
-            console.log(element)
-            if (element.function && handlers && args) {
+            console.log('element', element)
+            if (Array.isArray(element.children)) {
+                console.log('element.children', element.children)
+                const elementObject = { type: element.type, props: { ...element.props, key: elementN }, children: element.children }
+                const elementChild = createReactElement(elementObject, handlers, args)
+                return createElement(element.type, { ...element.props, key: elementN }, elementChild)
+                // const ce = createElement(element.type, { ...element.props, key: elementN }, element.children)
+                // const parentElement = createReactElement()
+                // return parentElement
+            } else if (element.function && handlers && args) {
                 const functionReturnValue = insertFunction(element.function, element.args, handlers, args)
-                console.log(functionReturnValue)
                 return functionReturnValue
-            } else {
-                const ce = createElement(element.type, { ...element.props, key: elementN }, element.children)
-                return ce
             }
+            console.log('element.child is NOT ARRAY/FUNCTION')
+            return createElement(element.type, { ...element.props, key: elementN }, element.children)
         })
     }
 
+    //?? ITERATE THROUGH CHILDREN
     if (Array.isArray(elements.children)) {
+        console.log('elements.children is ARRAY', elements.children)
         return elements.children.map((child, childN) => {
             console.log('child', child)
             if (Array.isArray(child.children)) {
-                console.log(child.children)
-                const childCRE = createReactElement(child.children, handlers, args)
-                const parent = createElement(child.type, { ...child.props, key: childN }, childCRE)
-                console.log('parent', parent)
-                console.log('childCRE', childCRE)
-                return parent
+                const childElements = createReactElement(child.children, handlers, args)
+                const element = createElement(child.type, { ...child.props, key: childN }, childElements)
+                return element
             }
             return createReactElement({ ...child, props: { key: childN } }, handlers, args)
         })
     }
+
     console.log('elements.children NOT ARRAY', elements)
-    if (typeof elements.children === 'string') {
-        const ce = createElement(elements.type, elements.props, elements.children)
-        console.log("createElement === STRING", ce)
-        return ce
-    } else if (typeof elements.children === 'object') {
-        const ce = createElement(elements.children, elements.props, elements.children)
-        console.log("createElement === OBJECT", ce)
-        return ce
+    // ??CHECK IF ELEMENT HAVE CHILDREN
+    if (elements.children) {
+        // ?? return children of type string
+        if (typeof elements.children === 'string') {
+            const ce = createElement(elements.type, elements.props, elements.children)
+            console.log("createElement === STRING", ce)
+            return ce
+        } else if (typeof elements.children === 'object') {
+            const ce = createElement(elements.children, elements.props, elements.children)
+            console.log("createElement === OBJECT", ce)
+            return ce
+        }
+    } else {
+        console.log('elements has no children', elements)
+        const element = elements as any
+        if (element.function && handlers && args) {
+            console.log("ELEMENTS IS FUNCTION", element.function, element.args)
+            const functionReturnValue = insertFunction(element.function, element.args, handlers, args)
+            return functionReturnValue
+        }
+        console.log('elements has no child and is not a function, how?')
+        return createElement(elements.type, elements.props)
     }
-    // else if (elements.children.function) {
-    //     console.log()
-    //     return null
-    // } 
 }
-// else if (Array.isArray(e.children)) {
-//     console.log('e.children', e.children)
-//     return e.children.map((child: any, childN: number) => {
-//         console.log('e', e)
-//         if (child.function && handlers) {
-//             const functionArguments = child.args.map((a: any) => a)
-//             const elementChild = handlers[child.function](...functionArguments)
-//             return createElement(e.type, { ...e.props, key: childN }, elementChild)
-//         } else if (child.type) {
-//             console.log('this shall be element', child)
-//             return createElement(e.type, { ...e.props, key: childN },)
-//         }
-//     })
-
-// }
-
 
 export default function Page() {
 
@@ -86,34 +88,72 @@ export default function Page() {
             className: 'AWHF',
             enableSorting: false,
             children: [
+                { function: 'addWord', args: ['header', 'className'] },
                 {
-                    type: 'i',
+                    type: 'button',
                     props: { className: 'classname' },
-                    children: 'this be i',
+                    children: [{
+                        type: 'i',
+                        props: { className: 'classname' },
+                        children: [
+                            { function: 'addWord', args: ['header', 'className'] }
+                        ]
+                    },
+                    { function: 'addWord', args: ['header', 'className'] }
+                    ],
+                    // { function: 'addWord', args: ['header', 'className'] }
                 },
-                { function: 'addWord', args: ['header', 'className'] }
                 // {
-                //     type: 'h2',
+                //     type: 'i',
                 //     props: { className: 'classname' },
-                //     children: [{
-                //         type: 'i',
-                //         props: { className: 'classname' },
-                //         children: 'this be ih3',
-                //     }],
+                //     children: 'just string',
                 // },
                 // {
-                //     type: 'h3',
+                //     type: 'br',
                 //     props: { className: 'classname' },
-                //     children: [{ function: 'addWord', args: ['header', 'className'] }],
                 // },
                 // {
                 //     type: 'div',
-                //     props: { className: 'classname', style: { display: "flex" } },
+                //     props: { className: 'classname' },
+                //     children: [
+                //         {
+                //             type: 'p',
+                //             props: { className: 'classname' },
+                //             children: [{
+                //                 type: 'span',
+                //                 props: { className: 'classname' },
+                //                 children: 'd > p > span',
+                //             },
+                //             {
+                //                 type: 'br',
+                //                 props: { className: 'classname' },
+                //             },
+                //             {
+                //                 type: 'i',
+                //                 props: { className: 'classname' },
+                //                 children: 'just string',
+                //             },
+                //             ],
+                //         },
+                //     ],
+                // },
+                {
+                    type: 'i',
+                    props: { className: 'classname' },
+                    children: [{ function: 'addWord', args: ['header', 'className'] }],
+                },
+                // {
+                //     type: 'button',
+                //     props: { className: 'classname' },
                 //     children: [{
-                //         type: 'button',
+                //         type: 'h3',
                 //         props: { className: 'classname' },
-                //         children: 'this be button',
-                //     }]
+                //         children: [{
+                //             type: 'i',
+                //             props: { className: 'classname' },
+                //             children: 'this be buttonih3',
+                //         }],
+                //     }],
                 // },
             ]
         },
