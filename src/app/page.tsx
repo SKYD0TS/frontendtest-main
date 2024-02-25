@@ -9,14 +9,18 @@ import { table } from "console"
 const API_URL = "http://127.0.0.1:8000"
 // import { columns } from "@/components/column"
 
-export function handleUpdate(id: string, item: any) {
+function handleUpdate(id: string, item: any) {
   console.log('handledit ' + id, item)
 }
 
-export function handleDelete(id: string) {
+function handleDelete(id: string) {
   console.log('handledele ' + id)
 }
 
+function index(absoluteRowPosition: any, pageSize: any, pageIndex: any) {
+  return (absoluteRowPosition + 1) + (pageSize * pageIndex)
+
+}
 
 
 export default function Home() {
@@ -34,6 +38,12 @@ export default function Home() {
     { name: "username", type: "text", model: "text" },
   ]
 
+  const functions: Record<string, Function> = {
+    handleDelete: handleDelete,
+    handleUpdate: handleUpdate,
+    index: index,
+  }
+
   // const [columns, setColumns] = useState<any>([])
   const [columns, setColumns] = useState([
     {
@@ -41,36 +51,46 @@ export default function Home() {
       header: "#",
       className: 'AWHF',
       enableSorting: false,
-      columnTemplate: { template: "index" }
+      children: [{
+        type: 'p',
+        props: null,
+        children: [{ function: 'index', args: ['absoluteRowPosition'] }]
+      }]
+      // { function: { name: 'index', args: ['absoluteRowPosition', 'pageSize', 'pageIndex'] } }
     },
-    {
-      accessorKey: "username",
-      header: "Username",
-    },
-    {
-      accessorKey: "password",
-      header: "Password",
-      enableSorting: false,
-    },
-    {
-      accessorKey: "action",
-      header: "Action",
-      enableSorting: false,
-      columnTemplate: {
-        template: "action",
-        templateProps: {
-          children: [
-            { type: "button", action: 'update', text: "edit" },
-            { type: "button", action: 'delete', text: "delete" },
-          ]
-        }
-      }
-      // cell: (props: any) => (
-      //   <div>
-      //     <button onClick={(e) => console.log(props.row.original)}>Edit</button>
-      //     <button onClick={() => alert(props.row.original.id + props.row.original.username)}>Delete</button>
-      //   </div>)
-    },
+    // {
+    //   accessorKey: "username",
+    //   header: "Username",
+    // },
+    // {
+    //   accessorKey: "password",
+    //   header: "Password",
+    //   enableSorting: false,
+    //   children: null,
+
+    // },
+    // {
+    //   accessorKey: "action",
+    //   header: "Action",
+    //   enableSorting: false,
+    //   columnTemplate: {
+    //     template: "action",
+    //     templateProps: {
+    //       children: [
+    //         {
+    //           type: "button", function:
+    //             { name: 'handleUpdate', args: ['originalData'] },
+    //           text: "edit"
+    //         },
+    //         {
+    //           type: "button", function:
+    //             { name: 'handleUelete', args: ['originalData'] },
+    //           text: "delete"
+    //         },
+    //       ]
+    //     }
+    //   }
+    // },
   ])
 
   // const [data, setData] = useState<any>([])
@@ -78,24 +98,24 @@ export default function Home() {
     { id: 110, username: "1", password: "password" },
     { id: 1, username: "2", password: "password" },
     { id: 2, username: "3", password: "password" },
-    { id: 3, username: "4", password: "password" },
-    { id: 4, username: "231", password: "password" },
-    { id: 5, username: "a23w", password: "password" },
-    { id: 6, username: "awasd", password: "password" },
-    { id: 7, username: "aw", password: "password" },
-    { id: 8, username: "a2asn", password: "password" },
-    { id: 9, username: "ax1n", password: "password" },
-    { id: 10, username: "aan", password: "password" },
-    { id: 12, username: "aaxfn", password: "password" },
-    { id: 13, username: "arfww", password: "password" },
-    { id: 14, username: "231", password: "password" },
-    { id: 15, username: "awasd", password: "password" },
-    { id: 16, username: "aan", password: "password" },
-    { id: 17, username: "aaxfn", password: "password" },
+    // { id: 3, username: "4", password: "password" },
+    // { id: 4, username: "231", password: "password" },
+    // { id: 5, username: "a23w", password: "password" },
+    // { id: 6, username: "awasd", password: "password" },
+    // { id: 7, username: "aw", password: "password" },
+    // { id: 8, username: "a2asn", password: "password" },
+    // { id: 9, username: "ax1n", password: "password" },
+    // { id: 10, username: "aan", password: "password" },
+    // { id: 12, username: "aaxfn", password: "password" },
+    // { id: 13, username: "arfww", password: "password" },
+    // { id: 14, username: "231", password: "password" },
+    // { id: 15, username: "awasd", password: "password" },
+    // { id: 16, username: "aan", password: "password" },
+    // { id: 17, username: "aaxfn", password: "password" },
   ])
 
   useEffect(() => {
-    return console.log(formModal.current)
+    // return console.log(formModal.current)
   })
 
   useEffect(() => {
@@ -138,8 +158,14 @@ export default function Home() {
         </dialog>
       </div>
       <div>
-        <Datatable columns={columns} data={data} apiUrl={apiUrl} handlers={{ updateItemHandler: handleUpdate, deleteItemHandler: handleDelete }} />
+        <hr />
+        <hr />
+        <br />
+        <Datatable columns={columns} data={data} apiUrl={apiUrl} handlers={functions} />
 
+        <br />
+        <hr />
+        <hr />
         <button onClick={() => { console.log(columns) }}>log</button>
         {/* <button onClick={() => {
           const newData = { id: data?.at(-1)?.id ?? -0, username: Date.now().toString(), password: 'password' }

@@ -14,49 +14,50 @@ import {
 import { ReactNode, createElement, useEffect, useState } from "react"
 import style from './datatable.module.css'
 
-// export function SortableHeader(props: { column: any }) {
-//     <button>{props.column.columnDef.accessorKey}</button>
-// }
-
-
-// createReactElement({
-//     type: 'div',
-//     props: { className: 'container' },
-//     children: [
-//         { type: "button", props: { onClick: 'handleEdit' }, children: "edit" },
-//         { type: 'i', props: { className: 'icon-1' }, children: null },
-//         'this is a string',
-//         {
-//             type: 'div',
-//             props: { className: 'nested-container' },
-//             children: [
-//                 'Nested content',
-//                 {
-//                     type: 'p',
-//                     props: null,
-//                     children: ['More nested content']
-//                 }
-//             ]
-//         }
-//     ]
-// })
-
 // !!NO TYPE
-function createReactElement({ type, props, children }: any) {
-    const childElements: Array<any> = Array.isArray(children)
-        ? children.map(child =>
-            typeof child === 'object' ? createReactElement(child) : child
-        )
-        : [children];
-    return createElement(type, { ...props, className: style[props?.className ?? type] }, ...childElements);
+function createReactElement(elements: { type: string, props: any, children: any }, handlers?: Record<string, Function>, args?: any): any {
+    console.log('elements', elements)
+
+    if (Array.isArray(elements)) {
+        return elements.map((e, en) => {
+            if (e.children.function && handlers) {
+                console.group('e.children has FUNCTION')
+                console.log('e', e)
+                console.log('e.children.function', e.children.function)
+                console.log('e.children.function', e.children.args)
+                console.log('handlers', handlers)
+                console.log('args', args)
+                let functionArgument: any = [];
+                e.children.args.forEach((key: any) => {
+                    functionArgument = [...functionArgument, args[key]];
+                });
+                console.log('function', handlers[e.children.function])
+                console.log('functionArgument', functionArgument)
+                console.log('function(functionArgument)', handlers[e.children.function](...functionArgument))
+                console.groupEnd()
+                return createElement(e.type, { ...e.props, key: en }, handlers[e.children.function](...functionArgument))
+
+            } else if (typeof e.children === 'string') {
+                // console.group('e.children is STRING')
+                // console.log(e.children)
+                // console.log(e)
+                // console.groupEnd()
+                return createElement(e.type, { ...e.props, key: en }, e.children)
+            }
+            else if (Array.isArray(e.children)) {
+                // console.group('e.children is ARRAY')
+                // console.log("e.children", e.children)
+                // console.log("e", e)
+                // console.log('createReactElement', createReactElement(e.children))
+                // console.log('ret', { ...e, children: createReactElement(e.children) })
+                // console.groupEnd()
+                return createElement(e.type, { ...e.props, key: en }, createReactElement(e.children))
+            }
+        })
+    }
 }
 
-type ERUDHandlers = {
-    updateItemHandler?: (id: string, item: any) => void
-    deleteItemHandler?: (id: string) => void
-}
-
-export default function Datatable(props: { data: any[], columns: ColumnDef<any>[], apiUrl: string, handlers?: ERUDHandlers }) {
+export default function Datatable(props: { data: any[], columns: ColumnDef<any>[], apiUrl: string, handlers?: Record<string, Function> }) {
 
     const [columns, setColumns] = useState<any>(props.columns)
     const [data, setData] = useState<any>(props.data)
@@ -90,6 +91,11 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
     useEffect(() => setPageIndex(0), [sorting])
     // useEffect(() => console.log(columns), [columns])
 
+    // return <>{createReactElement({
+    //     type: 'p',
+    //     props: null,
+    //     children: { function: { name: 'index', args: ['absoluteRowPosition'] } }
+    // }, props.handlers,)}</>
     return (<>
         <div>
             <label htmlFor="search">Search:</label>
@@ -121,36 +127,25 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
             <tbody>
                 {table.getRowModel().rows.map((data, dn) => {
                     return <tr key={data.id}>{data.getVisibleCells().map((c) => {
-                        const columnDef = c.column.columnDef as any
-                        const originalData = c.row.original as any
-
-                        switch (columnDef.columnTemplate?.template) {
-                            case "index":
-                                return <td key={c.id}>{(dn + 1) + (pageSize * pageIndex)}</td>
-                            case "action":
-                                return <td key={c.id}>
-                                    {columnDef.columnTemplate.templateProps.children.map((p: any, pn: number) => {
-                                        if (p.type == 'button') {
-                                            return <button key={pn}
-                                                onClick={() => {
-                                                    p.action === 'update'
-                                                        ? props.handlers?.updateItemHandler?.(originalData.id, originalData)
-                                                        : p.action === 'delete'
-                                                            ? props.handlers?.deleteItemHandler?.(originalData.id)
-                                                            : null
-                                                }}
-                                            >{p.text}</button>
-                                        }
-                                    })}
-                                </td>
-                            default:
-                                return <td key={c.id}>{
-                                    flexRender(
-                                        c.column.columnDef.cell,
-                                        c.getContext()
-                                    )
-                                }</td>
+                        const args = {
+                            absoluteRowPosition: dn,
+                            columnDef: c.column.columnDef as any,
+                            originalData: c.row.original as any,
+                            pageSize: pageSize,
+                            pageIndex: pageIndex,
                         }
+
+                        console.log('args.columnDef.children', args.columnDef.children)
+                        return args.columnDef.children ? createReactElement(args.columnDef.children, props.handlers, args)
+                            : ''
+                        // const element = args.columnDef.children ?
+                        //     createReactElement(args.columnDef, handlers, args)
+                        //     : args.originalData;
+
+                        // console.log(args['columnDef' as keyof typeof args])
+                        // return createReactElement(args.columnDef)
+                        return <td key={c.id}>{ }</td>
+                        {/* {(dn + 1) + (pageSize * pageIndex)} */ }
                     })}</tr>
                 })}
             </tbody>
