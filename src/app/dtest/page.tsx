@@ -2,48 +2,75 @@
 
 import { createElement, useState } from "react"
 
+function insertFunction(elementFunctionName: string, elementFunctionArgs: Array<any>, handlers: Record<string, Function>, args: any) {
+    console.log("insertFunction", { elementFunctionName, elementFunctionArgs, handlers, args })
+    const functionArguments = elementFunctionArgs.map((a: any) => a)
+    const functionReturnValue = handlers[elementFunctionName](...functionArguments)
+    return functionReturnValue
+}
 
 function createReactElement(elements: { type: string, props: any, children: any }, handlers?: Record<string, Function>, args?: any): any {
     console.log('elements', elements)
 
     if (Array.isArray(elements)) {
-        return elements.map((e, en) => {
-            if (e.children.function && handlers) {
-                console.group('e.children has FUNCTION')
-                console.log('e', e)
-                console.log('e.children.function', e.children.function)
-                console.log('e.children.function', e.children.args)
-                console.log('handlers', handlers)
-                console.log('args', args)
-                let functionArgument: any = [];
-                e.children.args.forEach((key: any) => {
-                    functionArgument = [...functionArgument, args[key]];
-                });
-                console.log('function', handlers[e.children.function])
-                console.log('functionArgument', functionArgument)
-                console.log('function(functionArgument)', handlers[e.children.function](...functionArgument))
-                console.groupEnd()
-                return createElement(e.type, { ...e.props, key: en }, handlers[e.children.function](...functionArgument))
-
-            } else if (typeof e.children === 'string') {
-                // console.group('e.children is STRING')
-                // console.log(e.children)
-                // console.log(e)
-                // console.groupEnd()
-                return createElement(e.type, { ...e.props, key: en }, e.children)
-            } else if (Array.isArray(e.children)) {
-                // console.group('e.children is ARRAY')
-                // console.log("e.children", e.children)
-                // console.log("e", e)
-                // console.log('createReactElement', createReactElement(e.children))
-                // console.log('ret', { ...e, children: createReactElement(e.children) })
-                // console.groupEnd()
-                return createElement(e.type, { ...e.props, key: en }, createReactElement(e.children))
+        console.log('elements is ARRAY', elements)
+        return elements.map((element, elementN) => {
+            console.log(element)
+            if (element.function && handlers && args) {
+                const functionReturnValue = insertFunction(element.function, element.args, handlers, args)
+                console.log(functionReturnValue)
+                return functionReturnValue
+            } else {
+                const ce = createElement(element.type, { ...element.props, key: elementN }, element.children)
+                return ce
             }
         })
     }
-}
 
+    if (Array.isArray(elements.children)) {
+        return elements.children.map((child, childN) => {
+            console.log('child', child)
+            if (Array.isArray(child.children)) {
+                console.log(child.children)
+                const childCRE = createReactElement(child.children, handlers, args)
+                const parent = createElement(child.type, { ...child.props, key: childN }, childCRE)
+                console.log('parent', parent)
+                console.log('childCRE', childCRE)
+                return parent
+            }
+            return createReactElement({ ...child, props: { key: childN } }, handlers, args)
+        })
+    }
+    console.log('elements.children NOT ARRAY', elements)
+    if (typeof elements.children === 'string') {
+        const ce = createElement(elements.type, elements.props, elements.children)
+        console.log("createElement === STRING", ce)
+        return ce
+    } else if (typeof elements.children === 'object') {
+        const ce = createElement(elements.children, elements.props, elements.children)
+        console.log("createElement === OBJECT", ce)
+        return ce
+    }
+    // else if (elements.children.function) {
+    //     console.log()
+    //     return null
+    // } 
+}
+// else if (Array.isArray(e.children)) {
+//     console.log('e.children', e.children)
+//     return e.children.map((child: any, childN: number) => {
+//         console.log('e', e)
+//         if (child.function && handlers) {
+//             const functionArguments = child.args.map((a: any) => a)
+//             const elementChild = handlers[child.function](...functionArguments)
+//             return createElement(e.type, { ...e.props, key: childN }, elementChild)
+//         } else if (child.type) {
+//             console.log('this shall be element', child)
+//             return createElement(e.type, { ...e.props, key: childN },)
+//         }
+//     })
+
+// }
 
 
 export default function Page() {
@@ -58,24 +85,37 @@ export default function Page() {
             header: "#",
             className: 'AWHF',
             enableSorting: false,
-            children: [{
-                type: 'h3',
-                props: { className: 'classname' },
-                children: { function: 'addWord', args: ['header', 'className'] },
-            }, {
-                type: 'div',
-                props: { className: 'classname', style: { display: "flex" } },
-                children: [{
-                    type: 'button',
+            children: [
+                {
+                    type: 'i',
                     props: { className: 'classname' },
-                    children: 'this be button',
-                }, {
-                    type: 'h3',
-                    props: { className: 'classname' },
-                    children: 'this be h3',
-                }],
-            }]
-            // { function: { name: 'index', args: ['absoluteRowPosition', 'pageSize', 'pageIndex'] } }
+                    children: 'this be i',
+                },
+                { function: 'addWord', args: ['header', 'className'] }
+                // {
+                //     type: 'h2',
+                //     props: { className: 'classname' },
+                //     children: [{
+                //         type: 'i',
+                //         props: { className: 'classname' },
+                //         children: 'this be ih3',
+                //     }],
+                // },
+                // {
+                //     type: 'h3',
+                //     props: { className: 'classname' },
+                //     children: [{ function: 'addWord', args: ['header', 'className'] }],
+                // },
+                // {
+                //     type: 'div',
+                //     props: { className: 'classname', style: { display: "flex" } },
+                //     children: [{
+                //         type: 'button',
+                //         props: { className: 'classname' },
+                //         children: 'this be button',
+                //     }]
+                // },
+            ]
         },
         // {
         //     accessorKey: "username",
@@ -93,9 +133,9 @@ export default function Page() {
         <hr />
         {columns.map((column, n) => {
             if (column.children) {
-                return <div key={n}>{createReactElement(column.children as any, functions, { ...column })}</div>
+                return <div key={n}>{createReactElement(column as any, functions, { ...column })}</div>
             }
-            <p key={n}>{column.accessorKey}aa</p>
+            <p key={n}>{column.accessorKey}aaaaa</p>
         })}
     </>
 }
