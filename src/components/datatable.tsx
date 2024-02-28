@@ -9,53 +9,131 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     getFilteredRowModel,
-    ColumnFiltersState
+    ColumnFiltersState,
+    Table
 } from "@tanstack/react-table"
 import { ReactNode, createElement, useEffect, useState } from "react"
 import style from './datatable.module.css'
 
-// !!NO TYPE
+export function DatatableHeader({ table }: { table: Table<unknown> }) {
+    return table.getHeaderGroups().map((hg) =>
+        <tr key={hg.id}>
+            {hg.headers.map((h) => {
+                return <th key={h.id}>{
+                    h.column.getCanSort() ?
+                        <button
+                            onClick={(e) => { h.column.toggleSorting(h.column.getIsSorted() === "asc") }}
+                            className={style.ghostButton} key={h.id}>{(h.column.columnDef.header ?? "-") as string}</button>
+                        :
+                        flexRender(h.column.columnDef.header, h.getContext())
+                }</th>
+            })}
+        </tr>
+    )
+}
+
+function index(absoluteRowPosition: any, pageSize: any, pageIndex: any) {
+    return (absoluteRowPosition + 1) + (pageSize * pageIndex)
+}
+
+function returnFunction(elementFunctionName: string, elementFunctionArgs: Array<any>, handlers: Record<string, Function>, args: any) {
+    console.log("returnFunction", { elementFunctionName, elementFunctionArgs, handlers, args })
+    const functionArguments = elementFunctionArgs.map((a: any) => a)
+    return () => { handlers[elementFunctionName](...functionArguments) }
+}
+
+function returnFunctionValue(elementFunctionName: string, elementFunctionArgs: Array<any>, handlers: Record<string, Function>, args: any) {
+    const functionArguments = elementFunctionArgs.map((a: any) => args[a])
+    const functionReturnValue = handlers[elementFunctionName](...functionArguments)
+    console.log(functionArguments)
+    return functionReturnValue
+}
+
 function createReactElement(elements: { type: string, props: any, children: any }, handlers?: Record<string, Function>, args?: any): any {
-    console.log('elements', elements)
+    console.log('===============')
+    console.log('base elements', elements)
 
+    if (elements.type === 'button' && elements.props.onClick.function && elements.props.onClick.args && handlers) {
+        console.log('this is button', elements.props)
+        elements.props.onClick = returnFunction(elements.props.onClick.function, elements.props.onClick.args, handlers, args)
+    }
+
+
+    //?? ITERATE THROUGH ELEMENTS
     if (Array.isArray(elements)) {
-        return elements.map((e, en) => {
-            if (e.children.function && handlers) {
-                console.group('e.children has FUNCTION')
-                console.log('e', e)
-                console.log('e.children.function', e.children.function)
-                console.log('e.children.function', e.children.args)
-                console.log('handlers', handlers)
-                console.log('args', args)
-                let functionArgument: any = [];
-                e.children.args.forEach((key: any) => {
-                    functionArgument = [...functionArgument, args[key]];
-                });
-                console.log('function', handlers[e.children.function])
-                console.log('functionArgument', functionArgument)
-                console.log('function(functionArgument)', handlers[e.children.function](...functionArgument))
-                console.groupEnd()
-                return createElement(e.type, { ...e.props, key: en }, handlers[e.children.function](...functionArgument))
-
-            } else if (typeof e.children === 'string') {
-                // console.group('e.children is STRING')
-                // console.log(e.children)
-                // console.log(e)
-                // console.groupEnd()
-                return createElement(e.type, { ...e.props, key: en }, e.children)
+        console.log('elements is ARRAY', elements)
+        return elements.map((element, elementN) => {
+            console.log('element', element)
+            if (element.type === 'button' && element.props.onClick.function && element.props.onClick.args && handlers) {
+                console.log('this is button', element.props)
+                element.props.onClick = returnFunction(element.props.onClick.function, element.props.onClick.args, handlers, args)
             }
-            else if (Array.isArray(e.children)) {
-                // console.group('e.children is ARRAY')
-                // console.log("e.children", e.children)
-                // console.log("e", e)
-                // console.log('createReactElement', createReactElement(e.children))
-                // console.log('ret', { ...e, children: createReactElement(e.children) })
-                // console.groupEnd()
-                return createElement(e.type, { ...e.props, key: en }, createReactElement(e.children))
+            if (typeof element === 'string') {
+                return element
+            } else if (Array.isArray(element.children)) {
+                console.log('element.children', element.children)
+                const elementObject = { type: element.type, props: { ...element.props, key: elementN }, children: element.children }
+                const elementChild = createReactElement(elementObject, handlers, args)
+                return createElement(element.type, { ...element.props, key: elementN }, elementChild)
+            } else if (element.function && handlers && args) {
+                const functionReturnValue = returnFunctionValue(element.function, element.args, handlers, args)
+                return functionReturnValue
             }
+            console.log('element.child is NOT ARRAY/FUNCTION')
+            return createElement(element.type, { key: elementN, ...element.props }, element.children)
         })
     }
+
+
+    //?? ITERATE THROUGH CHILDREN
+    if (elements.children && Array.isArray(elements.children)) {
+        console.error('ITERATE THROUGH CHILDREN?', elements)
+        console.log('elements.children is ARRAY', elements.children)
+        return elements.children.map((child, childN) => {
+            console.log('child', child)
+            if (typeof child === 'string') {
+                return child
+            } else if (Array.isArray(child.children)) {
+                console.log(child)
+                const childElements = createReactElement(child.children, handlers, args)
+                const element = createElement(child.type, { ...child.props, key: childN }, childElements)
+                return element
+            } else if (child.function && handlers && args) {
+                const functionReturnValue = returnFunctionValue(child.function, child.args, handlers, args)
+                return functionReturnValue
+            }
+            console.log('createReactElement', child.type, { ...child.props, key: childN }, child.children)
+            return createReactElement({ type: child.type, props: { ...child.props, key: childN }, children: child.children }, handlers, args)
+        })
+    }
+
+
+    console.log('elements.children NOT ARRAY', elements)
+    // ??CHECK IF ELEMENT HAVE CHILDREN
+    if (elements.children) {
+        // ?? return children of type string
+        if (typeof elements.children === 'string') {
+            const ce = createElement(elements.type, elements.props, elements.children)
+            console.log("createElement === STRING", ce)
+            return ce
+        } else if (typeof elements.children === 'object') {
+            const ce = createElement(elements.children, elements.props, elements.children)
+            console.log("createElement === OBJECT", ce)
+            return ce
+        }
+    } else {
+        console.log('elements has no children', elements)
+        const element = elements as any
+        if (element.function && handlers && args) {
+            console.log("ELEMENTS IS FUNCTION", element.function, element.args)
+            const functionReturnValue = returnFunctionValue(element.function, element.args, handlers, args)
+            return functionReturnValue
+        }
+        console.log('elements has no child and is not a function, how?')
+        return createElement(elements.type, elements.props)
+    }
 }
+
 
 export default function Datatable(props: { data: any[], columns: ColumnDef<any>[], apiUrl: string, handlers?: Record<string, Function> }) {
 
@@ -67,11 +145,12 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
-    const ERUD = props.handlers
+    const builtinFunctions = {
+        index: index,
+    }
 
-    // if (ERUD?.deleteItemHandler) {
-    //     ERUD.deleteItemHandler('4')
-    // }
+    const handlers = { ...builtinFunctions, ...props.handlers }
+    console.log(handlers)
 
     const table = useReactTable({
         columns: columns,
@@ -89,14 +168,9 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
 
     })
     useEffect(() => setPageIndex(0), [sorting])
-    // useEffect(() => console.log(columns), [columns])
 
-    // return <>{createReactElement({
-    //     type: 'p',
-    //     props: null,
-    //     children: { function: { name: 'index', args: ['absoluteRowPosition'] } }
-    // }, props.handlers,)}</>
     return (<>
+        {/* {console.time('create-element')} */}
         <div>
             <label htmlFor="search">Search:</label>
             <input
@@ -106,23 +180,7 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
         </div>
         <table className={style.datatable}>
             <thead>
-                {table.getHeaderGroups().map((hg) =>
-                    <tr key={hg.id}>
-                        {hg.headers.map((h) => {
-                            return <th key={h.id}>{
-                                h.column.getCanSort() ?
-                                    <button
-                                        onClick={(e) => { h.column.toggleSorting(h.column.getIsSorted() === "asc") }}
-                                        className={style.ghostButton} key={h.id}>{(h.column.columnDef.header ?? "-") as string}</button>
-                                    :
-                                    flexRender(
-                                        h.column.columnDef.header,
-                                        h.getContext()
-                                    )
-                            }</th>
-                        })}
-                    </tr>
-                )}
+                <DatatableHeader table={table} />
             </thead>
             <tbody>
                 {table.getRowModel().rows.map((data, dn) => {
@@ -134,22 +192,15 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
                             pageSize: pageSize,
                             pageIndex: pageIndex,
                         }
-
-                        console.log('args.columnDef.children', args.columnDef.children)
-                        return args.columnDef.children ? createReactElement(args.columnDef.children, props.handlers, args)
-                            : ''
-                        // const element = args.columnDef.children ?
-                        //     createReactElement(args.columnDef, handlers, args)
-                        //     : args.originalData;
-
-                        // console.log(args['columnDef' as keyof typeof args])
-                        // return createReactElement(args.columnDef)
-                        return <td key={c.id}>{ }</td>
-                        {/* {(dn + 1) + (pageSize * pageIndex)} */ }
-                    })}</tr>
+                        return <td key={c.id}>
+                            {args.columnDef.children ? createReactElement(args.columnDef.children, handlers, args)
+                                : flexRender(c.column.columnDef.cell, c.getContext())}
+                        </td>
+                    })}
+                    </tr>
                 })}
             </tbody>
-        </table >
+        </table>
         <div>
             <p>Pagination:</p>
             <button
@@ -166,5 +217,6 @@ export default function Datatable(props: { data: any[], columns: ColumnDef<any>[
             >{">"}
             </button>
         </div>
+        {/* {console.timeEnd('create-element')} */}
     </>)
 }
