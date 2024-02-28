@@ -25,22 +25,6 @@ function createReactElement(elements: { type: string, props: any, children: any 
         elements.props.onClick = returnFunction(elements.props.onClick.function, elements.props.onClick.args, handlers, args)
     }
 
-    //?? ITERATE THROUGH CHILDREN
-    if (Array.isArray(elements.children)) {
-        console.error('ITERATE THROUGH CHILDREN?', elements)
-        console.log('elements.children is ARRAY', elements.children)
-        return elements.children.map((child, childN) => {
-            console.log('child', child)
-            if (Array.isArray(child.children)) {
-                console.log(child)
-                const childElements = createReactElement(child.children, handlers, args)
-                const element = createElement(child.type, { ...child.props, key: childN }, childElements)
-                return element
-            }
-            console.log('createReactElement', child.type, { ...child.props, key: childN }, child.children)
-            return createReactElement({ type: child.type, props: { ...child.props, key: childN }, children: child.children }, handlers, args)
-        })
-    }
 
     //?? ITERATE THROUGH ELEMENTS
     if (Array.isArray(elements)) {
@@ -51,7 +35,9 @@ function createReactElement(elements: { type: string, props: any, children: any 
                 console.log('this is button', element.props)
                 element.props.onClick = returnFunction(element.props.onClick.function, element.props.onClick.args, handlers, args)
             }
-            if (Array.isArray(element.children)) {
+            if (typeof element === 'string') {
+                return element
+            } else if (Array.isArray(element.children)) {
                 console.log('element.children', element.children)
                 const elementObject = { type: element.type, props: { ...element.props, key: elementN }, children: element.children }
                 const elementChild = createReactElement(elementObject, handlers, args)
@@ -64,6 +50,30 @@ function createReactElement(elements: { type: string, props: any, children: any 
             return createElement(element.type, { key: elementN, ...element.props }, element.children)
         })
     }
+
+
+    //?? ITERATE THROUGH CHILDREN
+    if (elements.children && Array.isArray(elements.children)) {
+        console.error('ITERATE THROUGH CHILDREN?', elements)
+        console.log('elements.children is ARRAY', elements.children)
+        return elements.children.map((child, childN) => {
+            console.log('child', child)
+            if (typeof child === 'string') {
+                return child
+            } else if (Array.isArray(child.children)) {
+                console.log(child)
+                const childElements = createReactElement(child.children, handlers, args)
+                const element = createElement(child.type, { ...child.props, key: childN }, childElements)
+                return element
+            } else if (child.function && handlers && args) {
+                const functionReturnValue = returnFunctionValue(child.function, child.args, handlers, args)
+                return functionReturnValue
+            }
+            console.log('createReactElement', child.type, { ...child.props, key: childN }, child.children)
+            return createReactElement({ type: child.type, props: { ...child.props, key: childN }, children: child.children }, handlers, args)
+        })
+    }
+
 
     console.log('elements.children NOT ARRAY', elements)
     // ??CHECK IF ELEMENT HAVE CHILDREN
@@ -104,30 +114,75 @@ export default function Page() {
             header: "#",
             className: 'AWHF',
             enableSorting: false,
-            children: [{
-                type: 'div',
-                children: [
-                    {
-                        type: 'button',
-                        props: {
-                            onClick: { function: 'onClick', args: ['header', 'className'] }
-                        },
-                        children: [
-                            {
-                                type: 'h2',
-                                children: 'this be button   '
-                            }
-                        ],
-                    },
-                ]
-            },
-            {
-                type: 'i',
-                props: { className: 'classname' },
-                children: [
-                    { function: 'addWord', args: ['header', 'className'] }
-                ]
-            },
+            children: [
+                // {
+                //     type: 'h3',
+                //     props: { className: 'h3' },
+                //     children: "h3"
+                // },
+                // {
+                //     type: 'h3',
+                //     props: { className: 'h3' },
+                //     children: [
+                //         'usual',
+
+                //         {
+                //             type: 'strong',
+                //             props: { className: 'classname' },
+                //             children: [
+                //                 'strong?',
+                //                 {
+                //                     type: 'i',
+                //                     props: { className: 'classname' },
+                //                     children: [{ function: 'addWord', args: ['header', 'className'] }]
+                //                 },
+                //             ]
+                //         },
+                //         {
+                //             type: 'i',
+                //             props: { className: 'classname' },
+                //             children: 'string?'
+                //         },
+                //     ]
+                // },
+                // {
+                //     type: 'h4',
+                //     props: { className: 'h3' },
+                //     children: [
+                //         "h4",
+                //         {
+                //             type: 'i',
+                //             props: { className: 'classname' },
+                //             children: [
+                //                 { function: 'addWord', args: ['header', 'className'] }
+                //             ]
+                //         },
+                //     ]
+                // },
+                // {
+                //     type: 'div',
+                //     children: [
+                //         {
+                //             type: 'button',
+                //             props: {
+                //                 onClick: { function: 'onClick', args: ['header', 'className'] }
+                //             },
+                //             children: [
+                //                 {
+                //                     type: 'h2',
+                //                     children: 'this be button   '
+                //                 }
+                //             ],
+                //         },
+                //     ]
+                // },
+                // {
+                //     type: 'i',
+                //     props: { className: 'classname' },
+                //     children: [
+                //         { function: 'addWord', args: ['header', 'className'] }
+                //     ]
+                // },
             ]
         },
     ])
