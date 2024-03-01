@@ -38,7 +38,7 @@ function index(absoluteRowPosition: any, pageSize: any, pageIndex: any) {
 
 function returnFunction(elementFunctionName: string, elementFunctionArgs: Array<any>, handlers: Record<string, Function>, args: any) {
     console.log("returnFunction", { elementFunctionName, elementFunctionArgs, handlers, args })
-    const functionArguments = elementFunctionArgs.map((a: any) => a)
+    const functionArguments = elementFunctionArgs.map((a: any) => args[a])
     return () => { handlers[elementFunctionName](...functionArguments) }
 }
 
