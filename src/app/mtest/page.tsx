@@ -1,15 +1,27 @@
 'use client'
-import {Modal, ShowModalButton, ModalManager} from "@/components/modal";
-import { useRef, useState } from "react";
+import { Modal, ShowModalButton } from "@/components/modal";
+import { RefObject, Usable, createRef, use, useEffect, useReducer, useRef, useState } from "react";
 
-export default function page(){
-    
-    const modal = useRef<HTMLDialogElement>(null)
-    const [modalState, setModalState] = useState(false)
-    ModalManager(modal, modalState)
+function add(modal: any) {
+    modal.current?.setTitle('add')
+    modal.current?.setBody('addBody')
+    modal.current?.toggle()
+}
+
+function edit(modal: any) {
+    modal.current?.setTitle('edit')
+    modal.current?.setBody('editBody')
+    modal.current?.toggle()
+}
+
+export default function page() {
+    const modal = useRef(null)
     return <>
-    <Modal ref={modal}>
-        <h2>a</h2>
-    </Modal>
+        <ShowModalButton modal={modal} modalMode={'popover'} onClick={add}>add</ShowModalButton>
+        <ShowModalButton modal={modal} onClick={edit}>edit</ShowModalButton>
+
+        <Modal ref={modal}>
+            <h2>a</h2>
+        </Modal>
     </>
 }
